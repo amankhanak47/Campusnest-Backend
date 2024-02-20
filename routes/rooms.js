@@ -8,9 +8,10 @@ const Slots = require("../modals/Slots");
 const authenticateUser = require("../middlewares/users-details");
 const upload = require("../files/multer");
 const cloud = require("../files/cloudinary");
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const Notifications = require("../modals/Notifications");
 var jwt = require("jsonwebtoken");
+const Messages = require("../modals/Messages");
 const JWT_SECRET = "qwertyuiop";
 
 router.post(
@@ -264,20 +265,16 @@ router.post(
 
 router.get("/user-slots", authenticateUser, async (req, res) => {
   try {
-    const slots = await Slots.findAll(
-      {
-        include: [
-          { model: Users, as: "user" },
-          { model: Rooms, as: "room" },
-        ],
+    const slots = await Slots.findAll({
+      include: [
+        { model: Users, as: "user" },
+        { model: Rooms, as: "room" },
+      ],
+      where: {
+        user_id: req.user.id,
       },
-      {
-        where: {
-          user_id: req.user.id,
-        },
-        order: [["created_at", "DESC"]],
-      }
-    );
+      order: [["created_at", "DESC"]],
+    });
     res.json({
       success: true,
       slots: slots,
@@ -531,6 +528,97 @@ router.post("/get-notifications", async (req, res) => {
     res.json({
       success: true,
       notifications: notifications,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      errors: "Internal Server Error",
+    });
+  }
+});
+
+router.get("/get-user-chats", authenticateUser, async (req, res) => {
+  try {
+    const slots = await Slots.findAll({
+      include: [
+        { model: Owner, as: "owner" },
+        { model: Rooms, as: "room" },
+      ],
+
+      where: {
+        user_id: req.user.id,
+        status: "approved",
+      },
+      order: [["created_at", "DESC"]],
+    });
+
+    res.json({
+      success: true,
+      slots: slots,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      errors: "Internal Server Error",
+    });
+  }
+});
+
+router.get("/get-owner-chats", authenticateUser, async (req, res) => {
+  try {
+    const slots = await Slots.findAll({
+      include: [
+        { model: Users, as: "user" },
+        { model: Rooms, as: "room" },
+      ],
+
+      where: {
+        owner_id: req.user.id,
+        status: "approved",
+      },
+      order: [["created_at", "DESC"]],
+    });
+
+    res.json({
+      success: true,
+      slots: slots,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      errors: "Internal Server Error",
+    });
+  }
+});
+
+router.post("/get-user-chat-messages", async (req, res) => {
+  try {
+    const messages = await Messages.findAll({
+      where: {
+        [Op.or]: [
+          {
+            from: req.body.from,
+            from_role: req.body.from_role,
+            to: req.body.to,
+            to_role: req.body.to_role,
+          },
+          {
+            from: req.body.to,
+            from_role: req.body.to_role,
+            to: req.body.from,
+            to_role: req.body.from_role,
+          },
+        ],
+      },
+      order: [["sent_at", "ASC"]],
+    });
+
+    res.json({
+      success: true,
+      messages: messages,
     });
   } catch (error) {
     console.error(error);

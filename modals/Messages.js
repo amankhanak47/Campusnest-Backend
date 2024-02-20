@@ -1,8 +1,4 @@
 const { Sequelize, DataTypes } = require("sequelize");
-const Users = require("./User");
-const Admins = require("./Admin");
-const Owner = require("./Owner");
-const Rooms = require("./Rooms");
 
 // Create a Sequelize instance and connect to the PostgreSQL database
 const sequelize = new Sequelize(
@@ -29,45 +25,28 @@ const sequelize = new Sequelize(
   }
 );
 
-// Define the Slots model
-const Slots = sequelize.define(
-  "slots",
+// Define the User model
+const Messages = sequelize.define(
+  "messages",
   {
-    user_id: {
+    from: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
-    owner_id: {
+    to: {
       type: DataTypes.INTEGER,
-      allowNull: false,
     },
-    admin_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    room_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    doj: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    amount_paid: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    status: {
+    body: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
-    docs: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
-      //allowNull: false,
-    },
-    requested_at: {
+    from_role: {
+      type: DataTypes.STRING,
+      },
+    to_role: {
+      type: DataTypes.STRING,
+      },
+    sent_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      defaultValue: Sequelize.fn("now"),
     },
     created_at: {
       type: DataTypes.DATE,
@@ -78,11 +57,6 @@ const Slots = sequelize.define(
     timestamps: false, // Disable Sequelize's automatic timestamp fields
   }
 );
-
-Slots.belongsTo(Users, { foreignKey: "user_id", as: "user" });
-Slots.belongsTo(Admins, { foreignKey: "admin_id", as: "admin" });
-Slots.belongsTo(Owner, { foreignKey: "owner_id", as: "owner" });
-Slots.belongsTo(Rooms, { foreignKey: "room_id", as: "room" });
 
 // (async () => {
 //   try {
@@ -95,5 +69,5 @@ Slots.belongsTo(Rooms, { foreignKey: "room_id", as: "room" });
 //   }
 // })();
 
-// Export the Slots model
-module.exports = Slots;
+// Export the User model
+module.exports = Messages;

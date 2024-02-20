@@ -10,10 +10,32 @@ const Rooms = require("../modals/Rooms");
 const Slots = require("../modals/Slots");
 const JWT_SECRET = "qwertyuiop";
 
-router.post("/student-signup", async (req, res) => {
+
+
+
+router.post("/student-signup", [
+  body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Invalid email format'),
+  body('phno').isMobilePhone('en-IN').withMessage('Invalid phone number format'),
+  body('dob').notEmpty().withMessage('DOB is required'),
+  body('gender').notEmpty().withMessage('Gender is required'),
+  body('degree').notEmpty().withMessage('Degree is required'),
+  body('state').notEmpty().withMessage('State is required'),
+  body('country').notEmpty().withMessage('Country is required'),
+  body('pincode').isPostalCode('IN').withMessage('Invalid PIN code'),
+  body('college_name').notEmpty().withMessage('College name is required'),
+  body('course').notEmpty().withMessage('Course is required'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+  body('blood_group').notEmpty().withMessage('Blood group is required'),
+], async (req, res) => {
   try {
-    // Check if the user already exists with the provided email
-    const existingUser = await Users.findOne({
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+     const existingUser = await Users.findOne({
       where: { email: req.body.email },
     });
     if (existingUser) {
@@ -62,7 +84,7 @@ router.post("/student-signup", async (req, res) => {
       blood_group: req.body.blood_group,
     });
 
-    // Create JWT token for authentication
+    
     const data = {
       user: {
         id: newUser.id,
@@ -74,6 +96,7 @@ router.post("/student-signup", async (req, res) => {
       success: true,
       authToken,
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
