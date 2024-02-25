@@ -132,51 +132,27 @@ router.post("/admin-signup", async (req, res) => {
 });
 
 router.post(
-  "/owner-signup",
-  [
-    body("name").notEmpty().withMessage("Name is required"),
-    body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
-    body("email").isEmail().withMessage("Invalid email format"),
-    body("phno")
-      .isMobilePhone("en-IN")
-      .withMessage("Invalid phone number format"),
-    body("dob").notEmpty().withMessage("DOB is required"),
-    body("gender").notEmpty().withMessage("Gender is required"),
-    body("state").notEmpty().withMessage("State is required"),
-    body("country").notEmpty().withMessage("Country is required"),
-    body("pincode").isPostalCode("IN").withMessage("Invalid PIN code"),
-    body("uin").notEmpty().withMessage("UIN is required"),
-    body("ownership").notEmpty().withMessage("ownership is required"),
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
-      }
-      const existingUser = await Owner.findOne({
-        where: { email: req.body.email },
-      });
-      if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          errors: [{ msg: "A user with this email already exists." }],
-        });
-      }
-
-      const dob = new Date(req.body.dob);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      if (
-        monthDiff < 0 ||
-        (monthDiff === 0 && today.getDate() < dob.getDate())
-      ) {
-        age--;
-      }
-
+  "/owner-signup",upload.array("image",1),async(req,res)=>{
+      try {
+        const existingUser = await Owner.findOne({
+          where :{email:req.body.email}
+        })
+        if(existingUser){
+          return res.status(400).json({
+            success:false,
+            error:[{msg:"A User with email already exists"}]
+          })
+        }
+        const uploadedImage = await cloud.uploader.upload(req.files[0].path);
+        const dob = new Date(req.body.dob);
+        const today = new Date();
+        let age = today.getFullYear()-dob.getFullYear();
+        const monthDiff = today.getMonth()-dobt.getMonth();
+        if(monthDiff < 0|| (monthDiff===0 && today.getDate()<dob.getDate())){
+          age--;
+        } 
+      
+    
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -191,9 +167,11 @@ router.post(
         otp: "34567",
         blood_group: req.body.blood_group,
         country: req.body.country,
+        address: req.body.address,
         state: req.body.state,
         pincode: req.body.pincode,
         uin: req.body.uin,
+        profile_image: uploadedImage.secure_url,
         ownership: req.body.ownership,
       });
 

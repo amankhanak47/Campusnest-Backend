@@ -56,6 +56,10 @@ const Owner = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     state: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -67,6 +71,14 @@ const Owner = sequelize.define(
     pincode: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    profile_image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    ownership:{
+      type:DataTypes.STRING,
+      allowNull:false,
     },
     password: {
       type: DataTypes.STRING,
