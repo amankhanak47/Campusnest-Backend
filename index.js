@@ -9,7 +9,7 @@ const { Sequelize } = require("sequelize");
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-
+app.use(bodyParser.json());
 
 const ioOptions = {
   cors: {

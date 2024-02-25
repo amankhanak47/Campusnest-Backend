@@ -4,7 +4,9 @@ const Admins = require("../modals/Admin");
 const Owner = require("../modals/Owner");
 const Users = require("../modals/User");
 const authenticateUser = require("../middlewares/users-details");
-
+const bcrypt = require("bcryptjs");
+const cloud = require("../files/cloudinary");
+const upload = require("../files/multer");
 router.get("/user-details", authenticateUser, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -42,7 +44,7 @@ router.get("/owner-details", authenticateUser, async (req, res) => {
     });
   }
 })
-router.put("/update-profile", authenticateUser, async (req, res) => {
+router.put("/update-profile", authenticateUser, upload.array("image", 1), async (req, res) => {
   try {
     const dob = new Date(req.body.dob);
     const today = new Date();
@@ -51,15 +53,13 @@ router.put("/update-profile", authenticateUser, async (req, res) => {
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
       age--;
     }
-
+    const uploadedImage = await cloud.uploader.upload(req.files[0].path);
     // Split hobbies and interests by commas
-    const hobbies = req.body.hobbies ? req.body.hobbies.split(",") : [];
-    const interests = req.body.interests ? req.body.interests.split(",") : [];
+    const hobbies = req.body.hobbies.length==1 ? req.body.hobbies.split(",") : [req.body.hobbies];
+    const interests = req.body.interests.length==1 ? req.body.interests.split(",") : [req.body.interests];
 
     // Generate hashed password
-    const salt = await bcrypt.genSalt(10);
 
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
     const [updatedCount, updatedUser] = await Users.update(
       {
         name: req.body.name,
@@ -76,8 +76,8 @@ router.put("/update-profile", authenticateUser, async (req, res) => {
         course: req.body.course,
         interests: interests, // Assign parsed interests
         hobbies: hobbies, // Assign parsed hobbies
+        profile_image: uploadedImage.secure_url,
         certificates: req.body.certificates,
-        password: hashedPassword,
         otp: "343434",
         blood_group: req.body.blood_group,
       },

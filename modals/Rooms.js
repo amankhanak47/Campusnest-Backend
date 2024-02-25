@@ -59,6 +59,26 @@ const Rooms = sequelize.define(
       type: DataTypes.STRING,
       //allowNull: false,
     },
+    lattitude: {
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
+    longitude: {
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
+    bedrooms: {
+      type: DataTypes.INTEGER,
+      //allowNull: false,
+    },
+    bathrooms: {
+      type: DataTypes.INTEGER,
+      //allowNull: false,
+    },
+    locationurl: {
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
     rating: {
       type: DataTypes.STRING,
       //allowNull: true,

@@ -58,6 +58,10 @@ const Users = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     state: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -86,7 +90,7 @@ const Users = sequelize.define(
       type: DataTypes.ARRAY(DataTypes.STRING),
       allowNull: false,
     },
-    certificates: {
+    profile_image: {
       type: DataTypes.STRING,
       allowNull: true,
     },
