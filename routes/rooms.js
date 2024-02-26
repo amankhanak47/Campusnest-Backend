@@ -207,7 +207,12 @@ router.get("/owner-rooms", authenticateUser, async (req, res) => {
 router.post(
   "/request-room",
   authenticateUser,
-  upload.array("docs", 5),
+  upload.fields([
+    { name: 'docs', maxCount: 1 },
+    { name: 'college_letter', maxCount: 1 },
+    { name: 'visa', maxCount: 1 },
+    { name: 'id_proof', maxCount: 1 }
+  ]),
   async (req, res) => {
     try {
       const checkExistingSlot = await Slots.findOne({
@@ -217,24 +222,23 @@ router.post(
         },
       });
       if (checkExistingSlot) {
-        res.json({
+        return res.json({
           success: false,
           error: "Already requested for this Room",
         });
-        return;
       }
+
       const existingRoom = await Rooms.findOne({
         where: { id: req.body.roomId },
       });
 
-      const uploadedFiles = req.files;
+      const uploadedUrls = {
+        docs: await cloud.uploader.upload(req.files['docs'][0].path),
+        college_letter: await cloud.uploader.upload(req.files['college_letter'][0].path),
+        visa: await cloud.uploader.upload(req.files['visa'][0].path),
+        id_proof: await cloud.uploader.upload(req.files['id_proof'][0].path)
+      };
 
-      const uploadedUrls = await Promise.all(
-        uploadedFiles.map(async (file) => {
-          const uploadedImage = await cloud.uploader.upload(file.path);
-          return uploadedImage.secure_url;
-        })
-      );
       const newRequest = await Slots.create({
         user_id: req.user.id,
         owner_id: existingRoom.owner_id,
@@ -242,30 +246,36 @@ router.post(
         room_id: req.body.roomId,
         doj: req.body.doj,
         amount_paid: req.body.amount_paid || 0,
-        docs: uploadedUrls,
+        docs: uploadedUrls.docs.secure_url,
+        college_letter: uploadedUrls.college_letter.secure_url,
+        id_proof: uploadedUrls.id_proof.secure_url,
+        visa: uploadedUrls.visa.secure_url,
         requested_at: Sequelize.fn("now"),
         status: "pending",
       });
+
       await Notifications.create({
         user_id: req.user.id,
         role: "user",
-        body: `your booking request for room (${existingRoom.name} / ${existingRoom.id}) has been sent to admin for verification ... we will reach back to you soon`,
+        body: `Your booking request for room (${existingRoom.name} / ${existingRoom.id}) has been sent to admin for verification. We will reach back to you soon.`,
       });
+
       await Notifications.create({
         user_id: existingRoom.admin_id,
         role: "admin",
-        body: `New Request by Student to the room (${existingRoom.name} / ${existingRoom.id}) is waiting for approval`,
+        body: `New request by student for the room (${existingRoom.name} / ${existingRoom.id}) is waiting for approval.`,
       });
-      res.json({
+
+      return res.json({
         success: true,
         message: "Room request created successfully",
-        request: newRequest, // Return the created room request
+        request: newRequest,
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
-        errors: "Internal Server Error",
+        error: "Internal Server Error",
       });
     }
   }

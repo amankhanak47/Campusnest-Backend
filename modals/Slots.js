@@ -62,7 +62,19 @@ const Slots = sequelize.define(
       allowNull: false,
     },
     docs: {
-      type: DataTypes.ARRAY(DataTypes.STRING),
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
+    college_letter: {
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
+    id_proof: {
+      type: DataTypes.STRING,
+      //allowNull: false,
+    },
+    visa: {
+      type: DataTypes.STRING,
       //allowNull: false,
     },
     requested_at: {
