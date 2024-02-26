@@ -147,7 +147,7 @@ router.post(
         const dob = new Date(req.body.dob);
         const today = new Date();
         let age = today.getFullYear()-dob.getFullYear();
-        const monthDiff = today.getMonth()-dobt.getMonth();
+        const monthDiff = today.getMonth()-dob.getMonth();
         if(monthDiff < 0|| (monthDiff===0 && today.getDate()<dob.getDate())){
           age--;
         } 
