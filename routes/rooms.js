@@ -12,6 +12,7 @@ const { Sequelize, Op } = require("sequelize");
 const Notifications = require("../modals/Notifications");
 var jwt = require("jsonwebtoken");
 const Messages = require("../modals/Messages");
+const sendEmail = require("../middlewares/sendemails");
 const JWT_SECRET = "qwertyuiop";
 
 router.post(
@@ -55,11 +56,22 @@ router.post(
         role: "owner",
         body: `your creation request for room (${newRoom.name} / ${newRoom.id}) has been sent to admin for verification ... we will reach back to you soon`,
       });
+      sendEmail({
+        user_id: req.user.id,
+        role: "owner",
+        body: `your creation request for room (${newRoom.name} / ${newRoom.id}) has been sent to admin for verification ... we will reach back to you soon`,
+      });
       await Notifications.create({
         user_id: newRoom.admin_id,
         role: "admin",
         body: `New Request by Owner to the room (${newRoom.name} / ${newRoom.id}) is waiting for approval`,
       });
+      sendEmail({
+        user_id: newRoom.admin_id,
+        role: "admin",
+        body: `New Request by Owner to the room (${newRoom.name} / ${newRoom.id}) is waiting for approval`,
+      
+      })
       res.json({
         success: true,
         message: "Room created successfully",
@@ -108,7 +120,7 @@ router.put(
           price: req.body.price,
           slots: req.body.slots,
           available_slots: req.body.slots,
-          images: uploadedUrls, 
+          images: uploadedUrls,
           status: "pending",
         },
         { where: { id: req.body.id }, returning: true }
@@ -208,10 +220,10 @@ router.post(
   "/request-room",
   authenticateUser,
   upload.fields([
-    { name: 'docs', maxCount: 1 },
-    { name: 'college_letter', maxCount: 1 },
-    { name: 'visa', maxCount: 1 },
-    { name: 'id_proof', maxCount: 1 }
+    { name: "docs", maxCount: 1 },
+    { name: "college_letter", maxCount: 1 },
+    { name: "visa", maxCount: 1 },
+    { name: "id_proof", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
@@ -233,10 +245,12 @@ router.post(
       });
 
       const uploadedUrls = {
-        docs: await cloud.uploader.upload(req.files['docs'][0].path),
-        college_letter: await cloud.uploader.upload(req.files['college_letter'][0].path),
-        visa: await cloud.uploader.upload(req.files['visa'][0].path),
-        id_proof: await cloud.uploader.upload(req.files['id_proof'][0].path)
+        docs: await cloud.uploader.upload(req.files["docs"][0].path),
+        college_letter: await cloud.uploader.upload(
+          req.files["college_letter"][0].path
+        ),
+        visa: await cloud.uploader.upload(req.files["visa"][0].path),
+        id_proof: await cloud.uploader.upload(req.files["id_proof"][0].path),
       };
 
       const newRequest = await Slots.create({
@@ -259,12 +273,22 @@ router.post(
         role: "user",
         body: `Your booking request for room (${existingRoom.name} / ${existingRoom.id}) has been sent to admin for verification. We will reach back to you soon.`,
       });
-
+      sendEmail({
+        user_id: req.user.id,
+        role: "user",
+        body: `Your booking request for room (${existingRoom.name} / ${existingRoom.id}) has been sent to admin for verification. We will reach back to you soon.`,
+      })
       await Notifications.create({
         user_id: existingRoom.admin_id,
         role: "admin",
         body: `New request by student for the room (${existingRoom.name} / ${existingRoom.id}) is waiting for approval.`,
       });
+
+      sendEmail({
+        user_id: existingRoom.admin_id,
+        role: "admin",
+        body: `New request by student for the room (${existingRoom.name} / ${existingRoom.id}) is waiting for approval.`,
+      })
 
       return res.json({
         success: true,
@@ -415,7 +439,11 @@ router.put("/approve-room", async (req, res) => {
       role: "owner",
       body: `Your request to room (${room[0].name} / ${room[0].id}) has be approved by the admin`,
     });
-
+    sendEmail({
+      user_id: room[0].owner_id,
+      role: "owner",
+      body: `Your request to room (${room[0].name} / ${room[0].id}) has be approved by the admin`,
+    })
     res.json({
       success: true,
       room: room,
@@ -448,6 +476,11 @@ router.put("/reject-room", async (req, res) => {
       role: "owner",
       body: `Your request to room (${room[0].name} / ${room[0].id}) has be rejected by the admin because of improper documents`,
     });
+    sendEmail({
+      user_id: room[0].owner_id,
+      role: "owner",
+      body: `Your request to room (${room[0].name} / ${room[0].id}) has be rejected by the admin because of improper documents`,
+    })
     res.json({
       success: true,
       room: room,
@@ -478,9 +511,14 @@ router.put("/approve-user-details", async (req, res) => {
     await Notifications.create({
       user_id: slot[0].user_id,
       role: "user",
-
       body: `Your request to room (${room.name} / ${room.id}) has been approved by the admin,.. now you can chat with owner in bookings tab`,
     });
+
+    sendEmail({
+      user_id: slot[0].user_id,
+      role: "user",
+      body: `Your request to room (${room.name} / ${room.id}) has been approved by the admin,.. now you can chat with owner in bookings tab`,
+    })
     res.json({
       success: true,
       slot: slot,
@@ -511,9 +549,15 @@ router.put("/reject-user-details", async (req, res) => {
     await Notifications.create({
       user_id: slot[0].user_id,
       role: "user",
-
       body: `Your request to room (${room.name} / ${room.id}) has been rejected by the admin because of improper documents`,
     });
+
+    sendEmail({
+      user_id: slot[0].user_id,
+      role: "user",
+      body: `Your request to room (${room.name} / ${room.id}) has been rejected by the admin because of improper documents`,
+
+    })
     res.json({
       success: true,
       slot: slot,
