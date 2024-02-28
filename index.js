@@ -53,7 +53,7 @@ app.use(express.urlencoded({limit : '50mb',extended : true}))
 app.use("/auth", require("./routes/auth.js"));
 app.use("/", require("./routes/rooms.js"));
 app.use("/get", require("./routes/users.js"));
-
+app.use("/",require("./routes/reviews.js"))
 app.use(bodyParser.json());
 
 server.listen(port, () => {

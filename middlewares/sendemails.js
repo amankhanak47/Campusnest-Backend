@@ -18,13 +18,13 @@ async function sendEmail({ user_id, role, body }) {
     var transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "20211a05j2@bvrit.ac.in",
-        pass: "Aman@2002",
+        user: "campusnest@gmail.com",
+        pass: "Campusnest@27",
       },
     });
 
     var mailOptions = {
-      from: "20211a05j2@bvrit.ac.in",
+      from: "campusnest@gmail.com",
       to: reciever.email,
       subject: "CampusNest Notifications",
       html: `<p>${body}</p>`,
