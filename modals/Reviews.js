@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes, DATE } = require("sequelize");
 const Users = require("./User");
+const Slots = require("./Slots");
 
 // Create a Sequelize instance and connect to the PostgreSQL database
 const sequelize = new Sequelize(
@@ -10,19 +11,19 @@ const sequelize = new Sequelize(
     host: "dpg-cmmht30cmk4c73e2bj6g-a.oregon-postgres.render.com",
     dialect: "postgres",
     dialectOptions: {
-      "statement_timeout": 60000,
-      "idle_in_transaction_session_timeout": 180000,
-      "conectionTimeoutMillis": 5000,
+      statement_timeout: 60000,
+      idle_in_transaction_session_timeout: 180000,
+      conectionTimeoutMillis: 5000,
       ssl: {
         require: true,
         rejectUnauthorized: false, // For self-signed certificates
       },
     },
-    "pool": {
-      "max": 100,
-      "min": 0,
-      "idle": 30000
-    }
+    pool: {
+      max: 100,
+      min: 0,
+      idle: 30000,
+    },
   }
 );
 
@@ -39,8 +40,8 @@ const Reviews = sequelize.define(
     role: {
       type: DataTypes.STRING,
     },
-    rating:{
-      type:DataTypes.INTEGER,
+    rating: {
+      type: DataTypes.INTEGER,
     },
     created_at: {
       type: DataTypes.DATE,
@@ -52,13 +53,13 @@ const Reviews = sequelize.define(
   }
 );
 Reviews.belongsTo(Users, { foreignKey: "user_id", as: "user" });
-
-Reviews.sync()
-  .then(() => {
-    console.log("Reviews table created successfully.");
-  })
-  .catch((err) => {
-    console.error("Error creating Reviews table:", err);
-  });
+Reviews.belongsTo(Slots, { foreignKey: "slot_id", as: "slot" });
+// Reviews.sync()
+//   .then(() => {
+//     console.log("Reviews table created successfully.");
+//   })
+//   .catch((err) => {
+//     console.error("Error creating Reviews table:", err);
+//   });
 
 module.exports = Reviews;

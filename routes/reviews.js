@@ -6,6 +6,7 @@ const Users = require("../modals/User");
 const authenticateUser = require("../middlewares/users-details");
 const Feedback = require("../modals/Reviews");
 const Reviews = require("../modals/Reviews");
+const Slots = require("../modals/Slots");
 
 router.post("/sendreview", authenticateUser, async (req, res) => {
   try {
@@ -39,7 +40,9 @@ router.get("/getreviews", async (req, res) => {
     // const query = "SELECT * FROM Reviews";
 
     // const {rows} = await pool.query(query)
-    const rows = await Reviews.findAll( {include: [{ model: Users, as: "user" }]})
+    const rows = await Reviews.findAll( {include: [{ model: Users, as: "user" },{model:Slots,as:"slot"}],
+ 
+  })
     res.json(rows)
     res.status(204, {
       success: true,
