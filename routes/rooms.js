@@ -14,7 +14,7 @@ var jwt = require("jsonwebtoken");
 const Messages = require("../modals/Messages");
 const sendEmail = require("../middlewares/sendemails");
 const JWT_SECRET = "qwertyuiop";
-
+const { spawn } = require("child_process");
 router.post(
   "/create-room",
   authenticateUser,
@@ -70,8 +70,7 @@ router.post(
         user_id: newRoom.admin_id,
         role: "admin",
         body: `New Request by Owner to the room (${newRoom.name} / ${newRoom.id}) is waiting for approval`,
-      
-      })
+      });
       res.json({
         success: true,
         message: "Room created successfully",
@@ -277,7 +276,7 @@ router.post(
         user_id: req.user.id,
         role: "user",
         body: `Your booking request for room (${existingRoom.name} / ${existingRoom.id}) has been sent to admin for verification. We will reach back to you soon.`,
-      })
+      });
       await Notifications.create({
         user_id: existingRoom.admin_id,
         role: "admin",
@@ -288,7 +287,7 @@ router.post(
         user_id: existingRoom.admin_id,
         role: "admin",
         body: `New request by student for the room (${existingRoom.name} / ${existingRoom.id}) is waiting for approval.`,
-      })
+      });
 
       return res.json({
         success: true,
@@ -443,7 +442,7 @@ router.put("/approve-room", async (req, res) => {
       user_id: room[0].owner_id,
       role: "owner",
       body: `Your request to room (${room[0].name} / ${room[0].id}) has be approved by the admin`,
-    })
+    });
     res.json({
       success: true,
       room: room,
@@ -480,7 +479,7 @@ router.put("/reject-room", async (req, res) => {
       user_id: room[0].owner_id,
       role: "owner",
       body: `Your request to room (${room[0].name} / ${room[0].id}) has be rejected by the admin because of improper documents`,
-    })
+    });
     res.json({
       success: true,
       room: room,
@@ -518,7 +517,7 @@ router.put("/approve-user-details", async (req, res) => {
       user_id: slot[0].user_id,
       role: "user",
       body: `Your request to room (${room.name} / ${room.id}) has been approved by the admin,.. now you can chat with owner in bookings tab`,
-    })
+    });
     res.json({
       success: true,
       slot: slot,
@@ -556,8 +555,7 @@ router.put("/reject-user-details", async (req, res) => {
       user_id: slot[0].user_id,
       role: "user",
       body: `Your request to room (${room.name} / ${room.id}) has been rejected by the admin because of improper documents`,
-
-    })
+    });
     res.json({
       success: true,
       slot: slot,
@@ -690,5 +688,50 @@ router.post("/get-user-chat-messages", async (req, res) => {
     });
   }
 });
+router.post("/matchUsers", (req, res) => {
+  const userData = req.body;
 
+  const pythonProcess = spawn("python", [
+    "match_users.py",
+    JSON.stringify(userData),
+  ]);
+
+  let dataBuffer = "";
+  pythonProcess.stdout.on("data", (data) => {
+    dataBuffer += data.toString();
+  });
+
+  pythonProcess.stderr.on("data", (data) => {
+    console.error(`Error from Python script: ${data}`);
+  });
+
+  pythonProcess.on("close", async (code) => {
+    const matchingUsers = JSON.parse(dataBuffer);
+    const userIds = matchingUsers.map((user) => user.id);
+
+    const slots = await Slots.findAll({
+      where: {
+        user_id: {
+          [Op.in]: userIds,
+        },
+        status: "approved",
+      },
+    });
+
+    const roomIds = slots.map((slot) => slot.room_id);
+
+    const rooms = await Rooms.findAll({
+      where: {
+        id: {
+          [Op.in]: roomIds,
+        },
+      },
+    });
+    res.json({
+      success: true,
+      matchingUsers: matchingUsers,
+      rooms: rooms,
+    });
+  });
+});
 module.exports = router;
