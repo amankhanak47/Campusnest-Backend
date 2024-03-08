@@ -18,7 +18,8 @@ router.post("/sendreview", authenticateUser, async (req, res) => {
       user_id: userId,
       feedback: feedback.feedback,
       role: "user",
-      rating:feedback.rating,
+      rating: feedback.rating,
+      roomid: req.body?.roomid,
     };
     console.log(data);
     // Store feedback in the database
@@ -40,15 +41,70 @@ router.get("/getreviews", async (req, res) => {
     // const query = "SELECT * FROM Reviews";
 
     // const {rows} = await pool.query(query)
-    const rows = await Reviews.findAll( {include: [{ model: Users, as: "user" },{model:Slots,as:"slot"}],
- 
-  })
-    res.json(rows)
+    const rows = await Reviews.findAll({
+      where: {
+        roomid: null,
+      },
+      include: [
+        { model: Users, as: "user" },
+        { model: Slots, as: "slot" },
+      ],
+    });
+    res.json(rows);
     res.status(204, {
       success: true,
       message: "data received",
     });
     console.log(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500, {
+      success: false,
+      message: error,
+    });
+  }
+});
+
+router.post("/get-reviews-by-room", async (req, res) => {
+  try {
+    const rows = await Reviews.findAll({
+      where: {
+        roomid: req.body.roomid,
+      },
+      include: [
+        { model: Users, as: "user" },
+        { model: Slots, as: "slot" },
+      ],
+    });
+    res.json(rows);
+    res.status(204, {
+      success: true,
+      message: "data received",
+    });
+    console.log(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(500, {
+      success: false,
+      message: error,
+    });
+  }
+});
+
+router.post("/can-user-give-feedback", authenticateUser, async (req, res) => {
+  try {
+    const slot = await Slots.findAll({
+      where: {
+        room_id: req.body.roomid,
+        user_id: req.user.id,
+      },
+    });
+    if (slot.length > 0) {
+      
+      res.status(200).json({ success: true, message: "User can give feedback" });
+    }
+
+    res.status(200).json({ success: false, message: "User can't give feedback" });
   } catch (error) {
     console.log(error);
     res.status(500, {
