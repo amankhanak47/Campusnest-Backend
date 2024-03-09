@@ -35,7 +35,7 @@ const Reviews = sequelize.define(
     },
 
     feedback: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
     },
     role: {
       type: DataTypes.STRING,
