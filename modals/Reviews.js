@@ -33,7 +33,9 @@ const Reviews = sequelize.define(
     user_id: {
       type: DataTypes.INTEGER,
     },
-
+    roomid: {
+      type: DataTypes.INTEGER,
+    },
     feedback: {
       type: DataTypes.TEXT,
     },
