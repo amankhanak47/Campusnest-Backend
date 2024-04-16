@@ -53,10 +53,10 @@ if __name__ == "__main__":
 
     # Connect to PostgreSQL database
     conn = psycopg2.connect(
-        dbname="campus_nest",
-        user="campus_nest_user",
-        password="zMKt4fejQIWvWDX7ZYY6FLQUDm3mfvlM",
-        host="dpg-cmmht30cmk4c73e2bj6g-a.oregon-postgres.render.com",
+        dbname="campusnest_usa",
+        user="campusnest_usa_user",
+        password="NF6HqarNcbiZBWVcz1rDqF9SfCcwh5Xk",
+        host="dpg-cof8t5i1hbls739929bg-a.oregon-postgres.render.com/",
     )
     cur = conn.cursor()
 

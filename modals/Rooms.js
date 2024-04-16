@@ -4,11 +4,11 @@ const Owner = require("./Owner");
 
 // Create a Sequelize instance and connect to the PostgreSQL database
 const sequelize = new Sequelize(
-  "campus_nest",
-  "campus_nest_user",
-  "zMKt4fejQIWvWDX7ZYY6FLQUDm3mfvlM",
+  "campusnest_usa",
+  "campusnest_usa_user",
+  "NF6HqarNcbiZBWVcz1rDqF9SfCcwh5Xk",
   {
-    host: "dpg-cmmht30cmk4c73e2bj6g-a.oregon-postgres.render.com",
+    host: "dpg-cof8t5i1hbls739929bg-a.oregon-postgres.render.com",
     dialect: "postgres",
     dialectOptions: {
       "statement_timeout": 60000,
